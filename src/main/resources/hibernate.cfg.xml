@@ -16,7 +16,7 @@
         <property name="hibernate.show_sql">true</property>
 
         <!-- List of mapped entity classes (we’ll add them soon) -->
-        <!-- <mapping class="com.library.entity.Book"/> -->
+        <mapping class="com.library.entity.Book"/>
         <!-- <mapping class="com.library.entity.Member"/> -->
         <!-- <mapping class="com.library.entity.Loan"/> -->
         <!-- <mapping class="com.library.entity.Genre"/> -->
