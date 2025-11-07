@@ -7,7 +7,7 @@ import com.library.entity.Book;
 
 public class Main {
 
-	Public static void main(String[] args) {
+	public static void main(String[] args) {
 		DatabaseManager.setup();
 		
 		
@@ -17,9 +17,6 @@ public class Main {
 		
 		Book book = new Book("The little prince", "9781529047967", true);
 		session.persist(book);
-		
-		
-		
 		
 		tx.commit();
 		
