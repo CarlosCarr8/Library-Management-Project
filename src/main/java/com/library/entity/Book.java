@@ -1,5 +1,6 @@
 package com.library.entity;
 import jakarta.persistence.*;
+import java.time.LocalDate;
 
 
 @Entity
@@ -9,9 +10,10 @@ public class Book {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	
 	private String title;
 	private String isbn;
+	private String author;
+	private LocalDate publicationDate;
 	private boolean available;
 	
 	
@@ -47,6 +49,22 @@ public class Book {
 		this.isbn = isbn;
 	}
 	
+	public String getAuthor() {
+		return author;
+	}
+	
+	public void setAuthor(String author) {
+		this.author = author;
+	}
+	
+	public LocalDate getPublicationDate() {
+		return publicationDate;
+	}
+	
+	public void setPublicationDate(LocalDate publicationDate) {
+		this.publicationDate = publicationDate;
+	}
+	
 	public boolean getAvailable() {
 		return available;
 	}
@@ -57,7 +75,13 @@ public class Book {
 	
 	@Override
 	public String toString() {
-		return "Book [id=" + id + ", title= " + title + ", isbn= " + isbn + "available= " + available + "]";
+		return "Book [id=" + id + 
+				", title= " + title + 
+				", isbn= " + isbn + 
+				", author= " + author + 
+				", publicationDate= " + publicationDate + 
+				", available= " + available + "]";
+			
 	}
 	
 	
