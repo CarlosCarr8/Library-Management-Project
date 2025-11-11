@@ -25,20 +25,12 @@ public class Book {
 		
 	}
 	
-	public Book(String title, String isbn, boolean available, String author, LocalDate publicationDate) {
+	public Book(String title, String isbn, String author, LocalDate publicationDate,  boolean available) {
 		this.title = title;
 		this.isbn = isbn;
-		this.available = available;
 		this.author = author;
 		this.publicationDate = publicationDate;
-	}
-	
-	public Genre getGenre() {
-		return genre;
-	}
-	
-	public void setGenre(Genre genre) {
-		this.genre = genre;
+		this.available = available;
 	}
 	
 	
@@ -87,6 +79,15 @@ public class Book {
 	public void setAvailable(boolean available) {
 		this.available = available;
 	}
+	
+	public Genre getGenre() {
+		return genre;
+	}
+	
+	public void setGenre(Genre genre) {
+		this.genre = genre;
+	}
+	
 	
 	@Override
 	public String toString() {
