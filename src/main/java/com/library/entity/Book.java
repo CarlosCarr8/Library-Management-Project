@@ -97,7 +97,8 @@ public class Book {
 				", isbn= " + isbn + 
 				", author= " + author + 
 				", publicationDate= " + publicationDate + 
-				", available= " + available + "]";
+				", available= " + available + 
+				", genre=  " + genre.getType() + "]";
 			
 	}
 	
