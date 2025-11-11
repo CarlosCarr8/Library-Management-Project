@@ -16,8 +16,7 @@ public class LibraryManager {
 		
 		Genre genre = session.get(Genre.class, genreID);
 		
-		Book book = new	Book(title, isbn, author, publicationDate, available);
-		book.setGenre(genre);
+		Book book = new	Book(title, isbn, author, publicationDate, available, genre);
 		session.persist(book);
 		
 		tx.commit();
@@ -170,7 +169,17 @@ public class LibraryManager {
 	}
 	
 	
+	// clearDatabase temporary method for running several tests.
 	
+	public void clearDatabase() {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		Transaction tx = session.beginTransaction();
+		session.createMutationQuery("delete from Book").executeUpdate();
+		session.createMutationQuery("delete from Genre").executeUpdate();
+		tx.commit();
+		session.close();
+		System.out.println("Database Cleared");
+	}
 	
 	
 	
