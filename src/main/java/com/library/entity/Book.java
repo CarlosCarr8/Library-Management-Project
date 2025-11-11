@@ -1,6 +1,7 @@
 package com.library.entity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import com.library.entity.Genre;
 
 
 @Entity
@@ -16,6 +17,9 @@ public class Book {
 	private LocalDate publicationDate;
 	private boolean available;
 	
+	@ManyToOne
+	@JoinColumn(name = "genre_id")
+	private Genre genre;
 	
 	public Book() {
 		
@@ -26,6 +30,15 @@ public class Book {
 		this.isbn = isbn;
 		this.available = available;
 	}
+	
+	public Genre getGenre() {
+		return genre;
+	}
+	
+	public void setGenre(Genre genre) {
+		this.genre = genre;
+	}
+	
 	
 	public int getId() {
 		return id;
