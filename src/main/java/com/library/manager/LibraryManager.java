@@ -16,7 +16,7 @@ public class LibraryManager {
 		
 		Genre genre = session.get(Genre.class, genreID);
 		
-		Book book = new	Book(title, isbn, available);
+		Book book = new	Book(title, isbn, author, publicationDate, available);
 		book.setGenre(genre);
 		session.persist(book);
 		
@@ -31,7 +31,7 @@ public class LibraryManager {
 	public void viewBooks() {
 		Session session =  DatabaseManager.getSessionFactory().openSession();
 		
-		var books = session.createQuery("from book", Book.class).list();
+		var books = session.createQuery("from Book", Book.class).list();
 		
 		System.out.println("\n Book list: ");
 		for (Book b : books) {
@@ -89,7 +89,7 @@ public class LibraryManager {
 	public void searchByAuthor(String authorName) {
 		Session session = DatabaseManager.getSessionFactory().openSession();
 		
-		var results = session.createQuery("from Book where lower(author) like :keyword and available = true", Book.class)
+		var results = session.createQuery("from Book where lower(author) like :author and available = true", Book.class)
 				.setParameter("author", "%" + authorName.toLowerCase() + "%").list();
 		
 		if (results.isEmpty()) {
@@ -109,7 +109,7 @@ public class LibraryManager {
 	public void searchYear(int year) {
 		Session session = DatabaseManager.getSessionFactory().openSession();
 		
-		var results  = session.createQuery("from Book where year(publicationDate) = :year and available == true", Book.class)
+		var results  = session.createQuery("from Book where year(publicationDate) = :year and available = true", Book.class)
 				.setParameter("year", year).list();
 		
 		if (results.isEmpty()) {
