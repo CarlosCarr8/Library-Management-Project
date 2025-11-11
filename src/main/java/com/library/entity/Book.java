@@ -25,10 +25,12 @@ public class Book {
 		
 	}
 	
-	public Book(String title, String isbn, boolean available) {
+	public Book(String title, String isbn, boolean available, String author, LocalDate publicationDate) {
 		this.title = title;
 		this.isbn = isbn;
 		this.available = available;
+		this.author = author;
+		this.publicationDate = publicationDate;
 	}
 	
 	public Genre getGenre() {
