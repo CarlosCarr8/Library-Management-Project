@@ -1,5 +1,5 @@
 package com.library.manager;
-
+import com.library.entity.Genre;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import com.library.entity.Book;
@@ -120,6 +120,49 @@ public class LibraryManager {
 	}
 	
 	
+	// to add a new Genre
+	
+	public void addGenre(String type) {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		Transaction tx = session.beginTransaction();
+				
+		Genre genre = new Genre(type);
+		session.persist(genre);
+		
+		tx.commit();
+		session.close();
+	}
+	
+	// to view all genres
+	
+	public void viewGenres() {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		var genres = session.createQuery("from Genre", Genre.class).list();
+		
+		for (Genre g : genres) {
+			System.out.println(g);
+		}
+		session.close();
+	}
+	
+	// to search books by genre
+	
+	public void searchGenre(String genreName) {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		var results = session.createQuery("from Book where lower(genre.type) like :gname and available = true", Book.class)
+				.setParameter("gname", "%" + genreName.toLowerCase() + "%").list();
+		
+		if (results.isEmpty()) {
+			System.out.println("No books found in genre '" + genreName + "'");
+		} else {
+			System.out.println("Books by genre '" + genreName + "':");
+			
+			for (Book b : results) {
+				System.out.println(b);
+			}
+		}
+		session.close();
+	}
 	
 	
 	
