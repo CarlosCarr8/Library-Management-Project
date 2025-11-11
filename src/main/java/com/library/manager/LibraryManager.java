@@ -3,16 +3,21 @@ import com.library.entity.Genre;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import com.library.entity.Book;
+import java.time.LocalDate;
+
 
 public class LibraryManager {
 	
 	// To add a book
 	
-	public void addBook(String title, String isbn, boolean available) {
+	public void addBook(String title, String isbn, String author, LocalDate publicationDate, boolean available, int genreID) {
 		Session session = DatabaseManager.getSessionFactory().openSession();
 		Transaction tx = session.beginTransaction();
 		
+		Genre genre = session.get(Genre.class, genreID);
+		
 		Book book = new	Book(title, isbn, available);
+		book.setGenre(genre);
 		session.persist(book);
 		
 		tx.commit();
