@@ -1,14 +1,29 @@
 package com.library.entity;
 
+import jakarta.persistence.*;
+
+@Entity 
+@Inheritance(strategy =InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "user_type")
+
 public class User {
+	
+@Id
+@GeneratedValue(strategy = GenerationType.IDENTITY)
+private Long id;
+	
 private String username;
 private String password;
 
+public User() {}
 public User(String username,String password) {
 	this.username=username;
 	this.password=password;
 }
 
+public Long getId() {
+	return id;
+}
 public String getUsername() {
 	return username;
 }
@@ -22,11 +37,11 @@ public String getPassword() {
 public void setPassword(String password) {
 	this.password=password;
 }
-public boolean logic(String enteredPassword) {
+public boolean login(String enteredPassword) {
 	return this.password.equals(enteredPassword);
 }
 @Override
 public String toString() {
-	return  "User{" + "username= '" + username + '\''+'}';
+	return  "User{" + "id=" + id + ", username= '" + username + '\''+ '}';
 }
 }
