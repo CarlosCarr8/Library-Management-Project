@@ -1,1 +1,15 @@
-/target/
+
+# MAVEN
+# Folder where Maven stores compiled files (.class, .jar)
+target/
+
+# Local Eclipse configuration files and folders
+.classpath
+.project
+.settings/
+
+# Folder where Eclipse places compiled files
+bin/
+
+
+src/main/resources/hibernate.cfg.xml
