@@ -176,7 +176,63 @@ public class LibraryManager {
 	
 	
 	
+	public boolean login(String username, String password) {
+	    Session session = DatabaseManager.getSessionFactory().openSession();
+
+	    try {
+	        User user = session.createQuery("from User where username = :uname", User.class)
+	                .setParameter("uname", username)
+	                .uniqueResult();
+
+	        if (user == null) {
+	            System.out.println("Username not found.");
+	            return false;
+	        }
+
+	        if (!user.login(password)) { 
+	            System.out.println("Incorrect password.");
+	            return false;
+	        }
+
+	        System.out.println("Login successful! Welcome: " + username);
+	        return true;
+
+	    } finally {
+	        session.close();
+	    }
+	}
 	
 	
+	
+	public boolean resetPassword(String username, String newPassword) {
+	    Session session = DatabaseManager.getSessionFactory().openSession();
+	    Transaction tx = session.beginTransaction();
+
+	    try {
+	        User user = session.createQuery("from User where username = :uname", User.class)
+	                .setParameter("uname", username)
+	                .uniqueResult();
+
+	        if (user == null) {
+	            System.out.println("User not found.");
+	            return false;
+	        }
+
+	        user.setPassword(newPassword);  
+	        session.merge(user);
+	        tx.commit();
+
+	        System.out.println("Password updated for user: " + username);
+	        return true;
+
+	    } catch (Exception e) {
+	        tx.rollback();
+	        System.out.println("Error resetting password: " + e.getMessage());
+	        return false;
+
+	    } finally {
+	        session.close();
+	    }
+	}
 	
 }
