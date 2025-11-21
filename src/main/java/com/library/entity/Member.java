@@ -12,8 +12,9 @@ private int memberId;
 private String name;
 private String email;
 
-@Transient
-private List<Book> borrowedBooks = new ArrayList<>();
+@OneToMany(mappedBy = "member")
+private List<Loan> memberLoans = new ArrayList<>();
+
 	 
 public Member() {} 
 	 
@@ -47,15 +48,11 @@ return name;
 	public void setEmail(String email) {
 		this.email=email;
 	}
-	public List<Book> getBorrowedBooks(){
-		return borrowedBooks;
+
+	public List<Loan> getMemberLoans(){
+		return memberLoans;
 	}
-	public void borrowBook(Book book) {
-		borrowedBooks.add(book);	
-		}
-	public void returnBook(Book book) {
-		borrowedBooks.remove(book);
-	}
+	
 	@Override
 	public String toString() {
         return "Member{" + "id=" + getId() + ", memberId=" + memberId + ", name='" + name + '\'' +
