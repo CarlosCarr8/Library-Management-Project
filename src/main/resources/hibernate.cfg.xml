@@ -21,9 +21,9 @@
         <!-- List of mapped entity classes -->
         <mapping class="com.library.entity.Book"/>
         <mapping class="com.library.entity.Genre"/>
-        <!-- <mapping class="com.library.entity.Member"/> -->
-        <!-- <mapping class="com.library.entity.Loan"/> -->
-        <!-- <mapping class="com.library.entity.User"/> -->
+        <mapping class="com.library.entity.User"/>
+        <mapping class="com.library.entity.Member"/>
+		<mapping class="com.library.entity.Loan"/>
 
     </session-factory>
 </hibernate-configuration>
