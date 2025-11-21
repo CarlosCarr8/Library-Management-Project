@@ -6,7 +6,10 @@
   <session-factory>
         <!-- Connection settings -->
         <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
-        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/library_db?useSSL=false&amp;serverTimezone=UTC</property>
+        <property name="hibernate.connection.url">
+   			 jdbc:mysql://localhost:3306/library_db?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC
+		</property>
+
         <property name="hibernate.connection.username">root</property>
         <property name="hibernate.connection.password">52842Carlos</property>
 
@@ -15,11 +18,11 @@
         <property name="hibernate.hbm2ddl.auto">update</property>
         <property name="hibernate.show_sql">true</property>
 
-        <!-- List of mapped entity classes (we’ll add them soon) -->
+        <!-- List of mapped entity classes -->
         <mapping class="com.library.entity.Book"/>
+        <mapping class="com.library.entity.Genre"/>
         <!-- <mapping class="com.library.entity.Member"/> -->
         <!-- <mapping class="com.library.entity.Loan"/> -->
-        <!-- <mapping class="com.library.entity.Genre"/> -->
         <!-- <mapping class="com.library.entity.User"/> -->
 
     </session-factory>

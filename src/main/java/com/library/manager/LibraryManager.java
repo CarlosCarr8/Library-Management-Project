@@ -1,18 +1,24 @@
 package com.library.manager;
+import com.library.entity.Genre;
+import com.library.entity.User;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import com.library.entity.Book;
+import java.time.LocalDate;
+
 
 public class LibraryManager {
 	
 	// To add a book
 	
-	public void addBook(String title, String isbn, boolean available) {
+	public void addBook(String title, String isbn, String author, LocalDate publicationDate, boolean available, int genreID) {
 		Session session = DatabaseManager.getSessionFactory().openSession();
 		Transaction tx = session.beginTransaction();
 		
-		Book book = new	Book(title, isbn, available);
+		Genre genre = session.get(Genre.class, genreID);
+		
+		Book book = new	Book(title, isbn, author, publicationDate, available, genre);
 		session.persist(book);
 		
 		tx.commit();
@@ -26,7 +32,7 @@ public class LibraryManager {
 	public void viewBooks() {
 		Session session =  DatabaseManager.getSessionFactory().openSession();
 		
-		var books = session.createQuery("from book", Book.class).list();
+		var books = session.createQuery("from Book", Book.class).list();
 		
 		System.out.println("\n Book list: ");
 		for (Book b : books) {
@@ -84,7 +90,7 @@ public class LibraryManager {
 	public void searchByAuthor(String authorName) {
 		Session session = DatabaseManager.getSessionFactory().openSession();
 		
-		var results = session.createQuery("from Book where lower(author) like :keyword and available = true", Book.class)
+		var results = session.createQuery("from Book where lower(author) like :author and available = true", Book.class)
 				.setParameter("author", "%" + authorName.toLowerCase() + "%").list();
 		
 		if (results.isEmpty()) {
@@ -104,7 +110,7 @@ public class LibraryManager {
 	public void searchYear(int year) {
 		Session session = DatabaseManager.getSessionFactory().openSession();
 		
-		var results  = session.createQuery("from Book where year(publicationDate) = :year and available == true", Book.class)
+		var results  = session.createQuery("from Book where year(publicationDate) = :year and available = true", Book.class)
 				.setParameter("year", year).list();
 		
 		if (results.isEmpty()) {
@@ -120,11 +126,122 @@ public class LibraryManager {
 	}
 	
 	
+	// to add a new Genre
+	
+	public void addGenre(String type) {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		Transaction tx = session.beginTransaction();
+				
+		Genre genre = new Genre(type);
+		session.persist(genre);
+		
+		tx.commit();
+		session.close();
+	}
+	
+	// to view all genres
+	
+	public void viewGenres() {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		var genres = session.createQuery("from Genre", Genre.class).list();
+		
+		for (Genre g : genres) {
+			System.out.println(g);
+		}
+		session.close();
+	}
+	
+	// to search books by genre
+	
+	public void searchGenre(String genreName) {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		var results = session.createQuery("from Book where lower(genre.type) like :gname and available = true", Book.class)
+				.setParameter("gname", "%" + genreName.toLowerCase() + "%").list();
+		
+		if (results.isEmpty()) {
+			System.out.println("No books found in genre '" + genreName + "'");
+		} else {
+			System.out.println("Books by genre '" + genreName + "':");
+			
+			for (Book b : results) {
+				System.out.println(b);
+			}
+		}
+		session.close();
+	}
+	
+	
+	// clearDatabase temporary method for running several tests.
+	
+	public void clearDatabase() {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		Transaction tx = session.beginTransaction();
+		session.createMutationQuery("delete from Book").executeUpdate();
+		session.createMutationQuery("delete from Genre").executeUpdate();
+		tx.commit();
+		session.close();
+		System.out.println("Database Cleared");
+	}
 	
 	
 	
+	public boolean login(String username, String password) {
+	    Session session = DatabaseManager.getSessionFactory().openSession();
+
+	    try {
+	        User user = session.createQuery("from User where username = :uname", User.class)
+	                .setParameter("uname", username)
+	                .uniqueResult();
+
+	        if (user == null) {
+	            System.out.println("Username not found.");
+	            return false;
+	        }
+
+	        if (!user.login(password)) { 
+	            System.out.println("Incorrect password.");
+	            return false;
+	        }
+
+	        System.out.println("Login successful! Welcome: " + username);
+	        return true;
+
+	    } finally {
+	        session.close();
+	    }
+	}
 	
 	
 	
+	public boolean resetPassword(String username, String newPassword) {
+	    Session session = DatabaseManager.getSessionFactory().openSession();
+	    Transaction tx = session.beginTransaction();
+
+	    try {
+	        User user = session.createQuery("from User where username = :uname", User.class)
+	                .setParameter("uname", username)
+	                .uniqueResult();
+
+	        if (user == null) {
+	            System.out.println("User not found.");
+	            return false;
+	        }
+
+	        user.setPassword(newPassword);  
+	        session.merge(user);
+	        tx.commit();
+
+	        System.out.println("Password updated for user: " + username);
+	        return true;
+
+	    } catch (Exception e) {
+	        tx.rollback();
+	        System.out.println("Error resetting password: " + e.getMessage());
+	        return false;
+
+	    } finally {
+	        session.close();
+	    }
+	}
 	
 }

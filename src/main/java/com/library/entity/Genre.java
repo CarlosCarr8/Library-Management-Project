@@ -1,10 +1,14 @@
 package com.library.entity;
 
+import java.util.ArrayList;
 import jakarta.persistence.*;
 import java.util.List;
+
+
 @Entity
 @Table(name = "genre")
 public class Genre {
+	
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -12,7 +16,7 @@ public class Genre {
     private String type;
 
     @OneToMany(mappedBy = "genre", cascade = CascadeType.ALL)
-    private List<Book> books;
+    private List<Book> books = new ArrayList<>();
 
     public Genre() {}
 

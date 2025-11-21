@@ -1,6 +1,7 @@
 package com.library.entity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import com.library.entity.Genre;
 
 
 @Entity
@@ -16,16 +17,23 @@ public class Book {
 	private LocalDate publicationDate;
 	private boolean available;
 	
+	@ManyToOne
+	@JoinColumn(name = "genre_id")
+	private Genre genre;
 	
 	public Book() {
 		
 	}
 	
-	public Book(String title, String isbn, boolean available) {
+	public Book(String title, String isbn, String author, LocalDate publicationDate,  boolean available, Genre genre) {
 		this.title = title;
 		this.isbn = isbn;
+		this.author = author;
+		this.publicationDate = publicationDate;
 		this.available = available;
+		this.genre = genre;
 	}
+	
 	
 	public int getId() {
 		return id;
@@ -73,6 +81,15 @@ public class Book {
 		this.available = available;
 	}
 	
+	public Genre getGenre() {
+		return genre;
+	}
+	
+	public void setGenre(Genre genre) {
+		this.genre = genre;
+	}
+	
+	
 	@Override
 	public String toString() {
 		return "Book [id=" + id + 
@@ -80,7 +97,8 @@ public class Book {
 				", isbn= " + isbn + 
 				", author= " + author + 
 				", publicationDate= " + publicationDate + 
-				", available= " + available + "]";
+				", available= " + available + 
+				", genre=  " + genre.getType() + "]";
 			
 	}
 	
