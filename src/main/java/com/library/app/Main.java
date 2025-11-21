@@ -7,7 +7,7 @@ public class Main {
 
     public static void main(String[] args) {
     	
-    			// Start Hibernate
+    			// StartHibernate
     	DatabaseManager.setup();
     			
     			// Create LibraryManager object
@@ -40,7 +40,7 @@ public class Main {
         		// View updated book list
         manager.viewBooks();
 
-        		// End Hibernate session 
+        		// EndHibernate session 
         DatabaseManager.exit();
 
         System.out.println("First sucessful test");
