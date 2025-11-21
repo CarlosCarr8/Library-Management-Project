@@ -1,9 +1,12 @@
 package com.library.manager;
 import com.library.entity.Genre;
+import com.library.entity.User;
+import com.library.entity.Member;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import com.library.entity.Book;
 import java.time.LocalDate;
+import java.util.List;
 
 
 public class LibraryManager {
@@ -169,17 +172,9 @@ public class LibraryManager {
 	}
 	
 	
-	// clearDatabase temporary method for running several tests.
 	
-	public void clearDatabase() {
-		Session session = DatabaseManager.getSessionFactory().openSession();
-		Transaction tx = session.beginTransaction();
-		session.createMutationQuery("delete from Book").executeUpdate();
-		session.createMutationQuery("delete from Genre").executeUpdate();
-		tx.commit();
-		session.close();
-		System.out.println("Database Cleared");
-	}
+	
+	
 	
 	
 	
