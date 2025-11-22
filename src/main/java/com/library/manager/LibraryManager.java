@@ -2,6 +2,7 @@ package com.library.manager;
 import com.library.entity.Genre;
 import com.library.entity.User;
 import com.library.entity.Member;
+import com.library.entity.Loan;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import com.library.entity.Book;
@@ -169,6 +170,111 @@ public class LibraryManager {
 			}
 		}
 		session.close();
+	}
+	
+	
+	// method to borrow books
+	
+	public void borrowBook(int memberId, int bookId) {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		Transaction tx = session.beginTransaction();
+		
+		try {
+			
+			// first find the member by member id (what would be student number instead of DB id)
+			Member member = session.createQuery("from Member m where m.memberId = mid", Member.class)
+					.setParameter("mid", memberId)
+					.uniqueResult();
+			
+			if(member==null) {
+				System.out.println("Member ID: " + memberId + "not found.");
+				tx.rollback();
+				return;
+			}
+			
+			//Find the book by its DB id
+			
+			Book book = session.get(Book.class, bookId);
+			
+			if(book==null) {
+				System.out.println("Book ID: " + bookId + "not found.");
+				tx.rollback();
+				return;
+			}
+			
+			//check if the book is available
+			
+			if(!book.getAvailable()) {
+				System.out.println("The book: " + book.getTitle() + " is not available.");
+				tx.rollback();
+				return;
+				
+			}
+			
+			LocalDate today = LocalDate.now();
+			
+			//check if the member has overdue loans
+			Long overdueCount = session.createQuery("select count(1) from Loan 1" + 
+					"where 1.member = m: and 1.returned = false and 1.dueDate <:today",
+					Long.class)
+			.setParameter("m", member)
+			.setParameter("today", today)
+			.uniqueResult();
+			
+			if (overdueCount != null && overdueCount>0) {
+				System.out.println("Member: '" + member.getName() + "' has overdue loans and cannot borrow a new book.");
+				tx.rollback();
+				return;
+			}
+			
+			// check how many current loans the member has (max 5)
+			
+			Long activeLoanCount = session.createQuery("select count(1) from loan 1 " +
+			"where 1.member = :m and 1.returned = false",
+			Long.class)
+					.setParameter("m", member)
+					.uniqueResult();
+			
+			if (activeLoanCount != null && activeLoanCount >= 5) {
+				System.out.println("Member: '" + member.getName() + "' already has the maximum amount of loans (5).");
+			}
+			
+			// check if the member already has an active loan for this book
+			Long sameBookActive  = session.createQuery("select count(1) from Loan 1" +
+					"where 1.member = :m and 1.book = :b and 1.returned = false",
+					Long.class)
+					.setParameter("m", member)
+					.setParameter("b", book)
+					.uniqueResult();
+			
+			if(sameBookActive != null && sameBookActive > 0) {
+				System.out.println("Member: '" + member.getName() + "' already has an active loan for this book.");
+				tx.rollback();
+				return;
+			}
+			
+			
+			
+			// now if the member is applicable, create a new loan
+			
+			LocalDate dueDate = today.plusDays(14);
+			Loan loan = new Loan(member, book, today, dueDate);
+			session.persist(loan);
+			
+			book.setAvailable(false);
+			session.merge(book);
+			
+			tx.commit();
+			System.out.println("Book: '" + book.getTitle() +
+								"' loaned to " + member.getName() +
+								"until " + dueDate + ".");
+		} catch (Exception e){
+			tx.rollback();
+			e.printStackTrace();
+		} finally {
+			session.close();
+		}
+
 	}
 	
 	
