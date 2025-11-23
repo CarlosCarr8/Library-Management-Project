@@ -279,6 +279,51 @@ public class LibraryManager {
 	
 	
 	
+	//helper method
+	
+	public boolean isOverdue(Loan loan) {
+		if (loan == null) return false;
+		if (loan.isReturned()) return false;
+		return loan.getDueDate().isBefore(LocalDate.now());
+		
+	}
+	
+	//return book
+	
+	public void returnBook(int loanId) {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		Transaction tx = session.beginTransaction();
+		
+		try {
+			Loan loan = session.get(Loan.class, loanId);
+			
+			if (loan==null) {
+				System.out.println("Loan with ID: " + loanId + " not found.");
+				tx.rollback();
+				return;
+			}
+			
+			loan.setReturned(true);
+			
+			
+			Book book = loan.getBook();
+				if (book != null) {
+					book.setAvailable(true);
+					session.merge(book);
+				}
+			session.merge(loan);
+			tx.commit();
+			
+			System.out.println("Loan " + loanId + " returned. Book '"+
+					(book != null ? book.getTitle() : "unknown") + "' is available now.");
+		} catch (Exception e) {
+			tx.rollback();
+			e.printStackTrace();
+		} finally {
+			session.close();	}
+	}
+	
+	
 	
 	
 	
