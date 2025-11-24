@@ -8,9 +8,15 @@ import java.util.List;
 @DiscriminatorValue("MEMBER")
 
 public class Member extends User {
-private int memberId;
-private String name;
-private String email;
+	
+	@Column(name = "memberId")
+	private int memberId;
+	
+	@Column(name = "name")
+	private String name;
+	
+	@Column(name = "email")
+	private String email;
 
 @OneToMany(mappedBy = "member")
 private List<Loan> memberLoans = new ArrayList<>();
@@ -30,7 +36,7 @@ public int getMemberId() {
 return memberId;
 }
 
-public void setMmberId(int memberId) {
+public void setMemberId(int memberId) {
 this.memberId=memberId;
 }
 
