@@ -182,7 +182,7 @@ public class LibraryManager {
 		try {
 			
 			// first find the member by member id (what would be student number instead of DB id)
-			Member member = session.createQuery("from Member m where m.memberId = mid", Member.class)
+			Member member = session.createQuery("from Member m where m.memberId = :mid", Member.class)
 					.setParameter("mid", memberId)
 					.uniqueResult();
 			
@@ -325,8 +325,6 @@ public class LibraryManager {
 	
 	
 	
-	
-	
 	public boolean login(String username, String password) {
 	    Session session = DatabaseManager.getSessionFactory().openSession();
 
@@ -385,5 +383,103 @@ public class LibraryManager {
 	        session.close();
 	    }
 	}
+	
+	
+	// view borrowed books
+	public void viewBorrowedBooks() {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		
+		
+		List<Loan> loans = session.createQuery(
+				"from Loan l where l.returned = false", Loan.class).list();
+		
+		System.out.println("\n Active loans");
+		if (loans.isEmpty()) {System.out.println("No active loans."); }
+		else {
+			for (Loan l : loans) {
+				System.out.println("Loan: "+ l.getId()+
+						" / Member: " + l.getMember().getName()+
+						" / Book: " + l.getBook().getTitle() +
+						" / Borrowed: " + l.getBorrowDate() + 
+						" / Due: " + l.getDueDate());
+			}
+		}
+		
+		session.close();
+	}
+	
+	// view Overdue books
+	
+	public void viewOverdueBooks() {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		
+		LocalDate today = LocalDate.now();
+		
+		List<Loan> overdueLoans = session.createQuery(
+				"from Loan l where l.returned = false and l.dueDate < :today",
+				Loan.class).setParameter("today", today).list();
+		
+		System.out.println("Overdue loans:");
+				if (overdueLoans.isEmpty()) {
+					System.out.println("No overdue loans.");
+				} else {
+					for (Loan l : overdueLoans) {
+						System.out.println("Loan " + l.getId()+
+								" / Member: " + l.getMember().getName()+
+								" / Book: " + l.getBook().getTitle()+
+								" / Borrowed: " + l.getBorrowDate()+
+								" / Due: " + l.getDueDate());
+					}
+				}
+		session.close();
+	}
+	
+	// view loans by member:
+	
+	public void viewLoansByMember(int memberId) {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		
+		Member member = session.createQuery("from Member m where m.memberId = :mid",
+				Member.class).setParameter("mid", memberId).uniqueResult();
+		
+		if (member == null) {
+			System.out.println("Member with ID: " + memberId + " not found.");
+			session.close();
+			return;
+		}
+		
+		List<Loan> loans = session.createQuery("from Loan l where l.member = :m", Loan.class)
+				.setParameter("m", member).list();
+		
+		System.out.println("\n Loans for member: " + member.getName() + " (Member ID: " + member.getId() + ");");
+		
+		if (loans.isEmpty()) {
+			System.out.println("No loans for this member");
+		} else {
+			for (Loan l : loans) {
+				System.out.println("Loan " + l.getId() +
+						" / Book: " + l.getBook().getTitle()+
+						" / Borrowed: " + l.getBorrowDate() + 
+						" / Due: " + l.getDueDate() + 
+						" / Returned: " + l.isReturned());
+			}
+		}
+		
+		session.close();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 }
