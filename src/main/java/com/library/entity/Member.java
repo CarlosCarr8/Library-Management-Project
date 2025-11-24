@@ -8,12 +8,19 @@ import java.util.List;
 @DiscriminatorValue("MEMBER")
 
 public class Member extends User {
-private int memberId;
-private String name;
-private String email;
+	
+	@Column(name = "memberId")
+	private int memberId;
+	
+	@Column(name = "name")
+	private String name;
+	
+	@Column(name = "email")
+	private String email;
 
-@Transient
-private List<Book> borrowedBooks = new ArrayList<>();
+@OneToMany(mappedBy = "member")
+private List<Loan> memberLoans = new ArrayList<>();
+
 	 
 public Member() {} 
 	 
@@ -29,7 +36,7 @@ public int getMemberId() {
 return memberId;
 }
 
-public void setMmberId(int memberId) {
+public void setMemberId(int memberId) {
 this.memberId=memberId;
 }
 
@@ -47,15 +54,11 @@ return name;
 	public void setEmail(String email) {
 		this.email=email;
 	}
-	public List<Book> getBorrowedBooks(){
-		return borrowedBooks;
+
+	public List<Loan> getMemberLoans(){
+		return memberLoans;
 	}
-	public void borrowBook(Book book) {
-		borrowedBooks.add(book);	
-		}
-	public void returnBook(Book book) {
-		borrowedBooks.remove(book);
-	}
+	
 	@Override
 	public String toString() {
         return "Member{" + "id=" + getId() + ", memberId=" + memberId + ", name='" + name + '\'' +

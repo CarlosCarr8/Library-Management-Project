@@ -1,24 +1,33 @@
 package com.library.manager;
 import com.library.entity.Genre;
 import com.library.entity.User;
-
+import com.library.entity.Member;
+import com.library.entity.Loan;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import com.library.entity.Book;
 import java.time.LocalDate;
+import java.util.List;
 
 
 public class LibraryManager {
 	
 	// To add a book
 	
-	public void addBook(String title, String isbn, String author, LocalDate publicationDate, boolean available, int genreID) {
+	public void addBook(String title, String isbn, String author, LocalDate publicationDate, int genreID) {
 		Session session = DatabaseManager.getSessionFactory().openSession();
 		Transaction tx = session.beginTransaction();
 		
 		Genre genre = session.get(Genre.class, genreID);
 		
-		Book book = new	Book(title, isbn, author, publicationDate, available, genre);
+		if(genre == null) {
+			System.out.println("Genre ID " + genreID + " not found.");
+			tx.rollback();
+			session.close();
+			return;
+		}
+		
+		Book book = new	Book(title, isbn, author, publicationDate, true, genre);
 		session.persist(book);
 		
 		tx.commit();
@@ -170,18 +179,384 @@ public class LibraryManager {
 		session.close();
 	}
 	
+	// To search books by genre ID
 	
-	// clearDatabase temporary method for running several tests.
+	public void searchByGenre(int genreId) {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		
+		Genre genre = session.get(Genre.class, genreId);
+		if(genre==null) {
+			System.out.println("Genre ID " + genreId + " not found.");
+			session.close();
+			return;
+		}
+		
+		List <Book> books = session.createQuery(
+				"from Book b where b.genre.id = :gid", Book.class).setParameter("gid", genreId).list();
+		
+		System.out.println("\n Books in Genre: " + genre.getType());
+		if (books.isEmpty()) {
+			System.out.println("Genre ID " + genreId + " not found.");
+			session.close();
+			return;
+		} else {
+			for(Book b: books) {
+				System.out.println(b);
+			}
+		}
+		session.close();
+	}
 	
-	public void clearDatabase() {
+	// method to add a member
+	
+	public void addMember(int memberId, String username, String password, String name, String email) {
 		Session session = DatabaseManager.getSessionFactory().openSession();
 		Transaction tx = session.beginTransaction();
-		session.createMutationQuery("delete from Book").executeUpdate();
-		session.createMutationQuery("delete from Genre").executeUpdate();
-		tx.commit();
-		session.close();
-		System.out.println("Database Cleared");
+		
+		try {
+			//check if member already exists
+			Member existing = session.createQuery(
+					"from Member m where m.memberId = :mid", Member.class).setParameter("mid", memberId).uniqueResult();
+			if (existing != null) {
+				System.out.println("Member with ID " + memberId + " already exists.");
+				tx.rollback();
+				session.close();
+				return;
+			}
+			
+			Member newMember = new Member(memberId, username, password, name, email);
+			session.persist(newMember);
+			
+			tx.commit();
+			System.out.println("Member added successfully: " + name);
+		} catch (Exception e) {
+			tx.rollback();
+			e.printStackTrace();
+		} finally {
+			session.close();
+		}
 	}
+	
+	
+	// method to borrow books
+	
+	public void borrowBook(int memberId, int bookId) {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		Transaction tx = session.beginTransaction();
+		
+		try {
+			
+			// first find the member by member id (what would be student number instead of DB id)
+			Member member = session.createQuery("from Member m where m.memberId = :mid", Member.class)
+					.setParameter("mid", memberId)
+					.uniqueResult();
+			
+			if(member==null) {
+				System.out.println("Member ID: " + memberId + "not found.");
+				tx.rollback();
+				return;
+			}
+			
+			//Find the book by its DB id
+			
+			Book book = session.get(Book.class, bookId);
+			
+			if(book==null) {
+				System.out.println("Book ID: " + bookId + "not found.");
+				tx.rollback();
+				return;
+			}
+			
+			//check if the book is available
+			
+			if(!book.getAvailable()) {
+				System.out.println("The book: " + book.getTitle() + " is not available.");
+				tx.rollback();
+				return;
+				
+			}
+			
+			LocalDate today = LocalDate.now();
+			
+			//check if the member has overdue loans
+			Long overdueCount = session.createQuery("select count(1) from Loan 1" + 
+					"where 1.member = m: and 1.returned = false and 1.dueDate <:today",
+					Long.class)
+			.setParameter("m", member)
+			.setParameter("today", today)
+			.uniqueResult();
+			
+			if (overdueCount != null && overdueCount>0) {
+				System.out.println("Member: '" + member.getName() + "' has overdue loans and cannot borrow a new book.");
+				tx.rollback();
+				return;
+			}
+			
+			// check how many current loans the member has (max 5)
+			
+			Long activeLoanCount = session.createQuery("select count(1) from loan 1 " +
+			"where 1.member = :m and 1.returned = false",
+			Long.class)
+					.setParameter("m", member)
+					.uniqueResult();
+			
+			if (activeLoanCount != null && activeLoanCount >= 5) {
+				System.out.println("Member: '" + member.getName() + "' already has the maximum amount of loans (5).");
+			}
+			
+			// check if the member already has an active loan for this book
+			Long sameBookActive  = session.createQuery("select count(1) from Loan 1" +
+					"where 1.member = :m and 1.book = :b and 1.returned = false",
+					Long.class)
+					.setParameter("m", member)
+					.setParameter("b", book)
+					.uniqueResult();
+			
+			if(sameBookActive != null && sameBookActive > 0) {
+				System.out.println("Member: '" + member.getName() + "' already has an active loan for this book.");
+				tx.rollback();
+				return;
+			}
+			
+			
+			
+			// now if the member is applicable, create a new loan
+			
+			LocalDate dueDate = today.plusDays(14);
+			Loan loan = new Loan(member, book, today, dueDate);
+			session.persist(loan);
+			
+			book.setAvailable(false);
+			session.merge(book);
+			
+			tx.commit();
+			System.out.println("Book: '" + book.getTitle() +
+								"' loaned to " + member.getName() +
+								"until " + dueDate + ".");
+		} catch (Exception e){
+			tx.rollback();
+			e.printStackTrace();
+		} finally {
+			session.close();
+		}
+
+	}
+	
+	
+	
+	//helper method
+	
+	public boolean isOverdue(Loan loan) {
+		if (loan == null) return false;
+		if (loan.isReturned()) return false;
+		return loan.getDueDate().isBefore(LocalDate.now());
+		
+	}
+	
+	//return book
+	
+	public void returnBook(int loanId) {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		Transaction tx = session.beginTransaction();
+		
+		try {
+			Loan loan = session.get(Loan.class, loanId);
+			
+			if (loan==null) {
+				System.out.println("Loan with ID: " + loanId + " not found.");
+				tx.rollback();
+				return;
+			}
+			
+			loan.setReturned(true);
+			
+			
+			Book book = loan.getBook();
+				if (book != null) {
+					book.setAvailable(true);
+					session.merge(book);
+				}
+			session.merge(loan);
+			tx.commit();
+			
+			System.out.println("Loan " + loanId + " returned. Book '"+
+					(book != null ? book.getTitle() : "unknown") + "' is available now.");
+		} catch (Exception e) {
+			tx.rollback();
+			e.printStackTrace();
+		} finally {
+			session.close();	}
+	}
+	
+	
+	
+	public boolean login(String username, String password) {
+	    Session session = DatabaseManager.getSessionFactory().openSession();
+
+	    try {
+	        User user = session.createQuery("from User where username = :uname", User.class)
+	                .setParameter("uname", username)
+	                .uniqueResult();
+
+	        if (user == null) {
+	            System.out.println("Username not found.");
+	            return false;
+	        }
+
+	        if (!user.login(password)) { 
+	            System.out.println("Incorrect password.");
+	            return false;
+	        }
+
+	        System.out.println("Login successful! Welcome: " + username);
+	        return true;
+
+	    } finally {
+	        session.close();
+	    }
+	}
+	
+	
+	
+	public boolean resetPassword(String username, String newPassword) {
+	    Session session = DatabaseManager.getSessionFactory().openSession();
+	    Transaction tx = session.beginTransaction();
+
+	    try {
+	        User user = session.createQuery("from User where username = :uname", User.class)
+	                .setParameter("uname", username)
+	                .uniqueResult();
+
+	        if (user == null) {
+	            System.out.println("User not found.");
+	            return false;
+	        }
+
+	        user.setPassword(newPassword);  
+	        session.merge(user);
+	        tx.commit();
+
+	        System.out.println("Password updated for user: " + username);
+	        return true;
+
+	    } catch (Exception e) {
+	        tx.rollback();
+	        System.out.println("Error resetting password: " + e.getMessage());
+	        return false;
+
+	    } finally {
+	        session.close();
+	    }
+	}
+	
+	
+	// view borrowed books
+	public void viewBorrowedBooks() {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		
+		
+		List<Loan> loans = session.createQuery(
+				"from Loan l where l.returned = false", Loan.class).list();
+		
+		System.out.println("\n Active loans");
+		if (loans.isEmpty()) {System.out.println("No active loans."); }
+		else {
+			for (Loan l : loans) {
+				System.out.println("Loan: "+ l.getId()+
+						" / Member: " + l.getMember().getName()+
+						" / Book: " + l.getBook().getTitle() +
+						" / Borrowed: " + l.getBorrowDate() + 
+						" / Due: " + l.getDueDate());
+			}
+		}
+		
+		session.close();
+	}
+	
+	// view Overdue books
+	
+	public void viewOverdueBooks() {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		
+		LocalDate today = LocalDate.now();
+		
+		List<Loan> overdueLoans = session.createQuery(
+				"from Loan l where l.returned = false and l.dueDate < :today",
+				Loan.class).setParameter("today", today).list();
+		
+		System.out.println("Overdue loans:");
+				if (overdueLoans.isEmpty()) {
+					System.out.println("No overdue loans.");
+				} else {
+					for (Loan l : overdueLoans) {
+						System.out.println("Loan " + l.getId()+
+								" / Member: " + l.getMember().getName()+
+								" / Book: " + l.getBook().getTitle()+
+								" / Borrowed: " + l.getBorrowDate()+
+								" / Due: " + l.getDueDate());
+					}
+				}
+		session.close();
+	}
+	
+	// view loans by member:
+	
+	public void viewLoansByMember(int memberId) {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		
+		Member member = session.createQuery("from Member m where m.memberId = :mid",
+				Member.class).setParameter("mid", memberId).uniqueResult();
+		
+		if (member == null) {
+			System.out.println("Member with ID: " + memberId + " not found.");
+			session.close();
+			return;
+		}
+		
+		List<Loan> loans = session.createQuery("from Loan l where l.member = :m", Loan.class)
+				.setParameter("m", member).list();
+		
+		System.out.println("\n Loans for member: " + member.getName() + " (Member ID: " + member.getId() + ");");
+		
+		if (loans.isEmpty()) {
+			System.out.println("No loans for this member");
+		} else {
+			for (Loan l : loans) {
+				System.out.println("Loan " + l.getId() +
+						" / Book: " + l.getBook().getTitle()+
+						" / Borrowed: " + l.getBorrowDate() + 
+						" / Due: " + l.getDueDate() + 
+						" / Returned: " + l.isReturned());
+			}
+		}
+		
+		session.close();
+	}
+	
+	// method to view active loans
+	
+	public void viewActiveLoans() {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		
+		List<Loan> loans = session.createQuery("from Loan l where l.returned = false", Loan.class).list();
+		
+		System.out.println("\n Active loans:");
+		if (loans.isEmpty()) {
+			System.out.println("No active loans on record.");
+		} else {
+			for (Loan l : loans) {
+				System.out.println("Loan: " + l.getId() +
+					" / Book: " + l.getBook().getTitle() + 
+					" / Borrowed: " + l.getBorrowDate() + 
+					" / Due: " + l.getDueDate());
+			}
+		}
+		session.close();
+	}
+	
+
+	
+
 	
 	
 	

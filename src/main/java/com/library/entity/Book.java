@@ -2,6 +2,8 @@ package com.library.entity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import com.library.entity.Genre;
+import java.util.List;
+import java.util.ArrayList;
 
 
 @Entity
@@ -34,6 +36,9 @@ public class Book {
 		this.genre = genre;
 	}
 	
+	@OneToMany(mappedBy = "book")
+	private List<Loan> bookLoans = new ArrayList<>();
+
 	
 	public int getId() {
 		return id;
@@ -104,11 +109,5 @@ public class Book {
 	
 	
 }
-	
-	
-	
-	
-	
-	
 	
 	
