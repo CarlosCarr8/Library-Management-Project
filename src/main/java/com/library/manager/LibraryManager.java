@@ -14,13 +14,20 @@ public class LibraryManager {
 	
 	// To add a book
 	
-	public void addBook(String title, String isbn, String author, LocalDate publicationDate, boolean available, int genreID) {
+	public void addBook(String title, String isbn, String author, LocalDate publicationDate, int genreID) {
 		Session session = DatabaseManager.getSessionFactory().openSession();
 		Transaction tx = session.beginTransaction();
 		
 		Genre genre = session.get(Genre.class, genreID);
 		
-		Book book = new	Book(title, isbn, author, publicationDate, available, genre);
+		if(genre == null) {
+			System.out.println("Genre ID " + genreID + " not found.");
+			tx.rollback();
+			session.close();
+			return;
+		}
+		
+		Book book = new	Book(title, isbn, author, publicationDate, true, genre);
 		session.persist(book);
 		
 		tx.commit();
@@ -170,6 +177,64 @@ public class LibraryManager {
 			}
 		}
 		session.close();
+	}
+	
+	// To search books by genre ID
+	
+	public void searchByGenre(int genreId) {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		
+		Genre genre = session.get(Genre.class, genreId);
+		if(genre==null) {
+			System.out.println("Genre ID " + genreId + " not found.");
+			session.close();
+			return;
+		}
+		
+		List <Book> books = session.createQuery(
+				"from Book b where b.genre.id = :gid", Book.class).setParameter("gid", genreId).list();
+		
+		System.out.println("\n Books in Genre: " + genre.getType());
+		if (books.isEmpty()) {
+			System.out.println("Genre ID " + genreId + " not found.");
+			session.close();
+			return;
+		} else {
+			for(Book b: books) {
+				System.out.println(b);
+			}
+		}
+		session.close();
+	}
+	
+	// method to add a member
+	
+	public void addMember(int memberId, String username, String password, String name, String email) {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		Transaction tx = session.beginTransaction();
+		
+		try {
+			//check if member already exists
+			Member existing = session.createQuery(
+					"from Member m where m.memberId = :mid", Member.class).setParameter("mid", memberId).uniqueResult();
+			if (existing != null) {
+				System.out.println("Member with ID " + memberId + " already exists.");
+				tx.rollback();
+				session.close();
+				return;
+			}
+			
+			Member newMember = new Member(memberId, username, password, name, email);
+			session.persist(newMember);
+			
+			tx.commit();
+			System.out.println("Member added successfully: " + name);
+		} catch (Exception e) {
+			tx.rollback();
+			e.printStackTrace();
+		} finally {
+			session.close();
+		}
 	}
 	
 	
@@ -468,16 +533,30 @@ public class LibraryManager {
 		session.close();
 	}
 	
+	// method to view active loans
 	
+	public void viewActiveLoans() {
+		Session session = DatabaseManager.getSessionFactory().openSession();
+		
+		List<Loan> loans = session.createQuery("from Loan l where l.returned = false", Loan.class).list();
+		
+		System.out.println("\n Active loans:");
+		if (loans.isEmpty()) {
+			System.out.println("No active loans on record.");
+		} else {
+			for (Loan l : loans) {
+				System.out.println("Loan: " + l.getId() +
+					" / Book: " + l.getBook().getTitle() + 
+					" / Borrowed: " + l.getBorrowDate() + 
+					" / Due: " + l.getDueDate());
+			}
+		}
+		session.close();
+	}
 	
+
 	
-	
-	
-	
-	
-	
-	
-	
+
 	
 	
 	
