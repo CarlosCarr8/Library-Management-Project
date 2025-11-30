@@ -41,7 +41,7 @@ public class LibraryManager {
 	public void viewBooks() {
 		Session session =  DatabaseManager.getSessionFactory().openSession();
 		
-		var books = session.createQuery("from Book", Book.class).list();
+		var books = session.createQuery("from Book b where b.available = true", Book.class).list();
 		
 		System.out.println("\n Book list: ");
 		for (Book b : books) {
@@ -196,7 +196,7 @@ public class LibraryManager {
 		
 		System.out.println("\n Books in Genre: " + genre.getType());
 		if (books.isEmpty()) {
-			System.out.println("Genre ID " + genreId + " not found.");
+			System.out.println("No books found in this genre.");
 			session.close();
 			return;
 		} else {
@@ -279,8 +279,8 @@ public class LibraryManager {
 			LocalDate today = LocalDate.now();
 			
 			//check if the member has overdue loans
-			Long overdueCount = session.createQuery("select count(1) from Loan 1" + 
-					"where 1.member = m: and 1.returned = false and 1.dueDate <:today",
+			Long overdueCount = session.createQuery("select count(l) from Loan l " + 
+					"where l.member = :m and l.returned = false and l.dueDate < :today",
 					Long.class)
 			.setParameter("m", member)
 			.setParameter("today", today)
@@ -294,19 +294,20 @@ public class LibraryManager {
 			
 			// check how many current loans the member has (max 5)
 			
-			Long activeLoanCount = session.createQuery("select count(1) from loan 1 " +
-			"where 1.member = :m and 1.returned = false",
+			Long activeLoanCount = session.createQuery("select count(l) from Loan l " +
+			"where l.member = :m and l.returned = false",
 			Long.class)
 					.setParameter("m", member)
 					.uniqueResult();
 			
 			if (activeLoanCount != null && activeLoanCount >= 5) {
 				System.out.println("Member: '" + member.getName() + "' already has the maximum amount of loans (5).");
+				return;
 			}
 			
 			// check if the member already has an active loan for this book
-			Long sameBookActive  = session.createQuery("select count(1) from Loan 1" +
-					"where 1.member = :m and 1.book = :b and 1.returned = false",
+			Long sameBookActive  = session.createQuery("select count(l) from Loan l " +
+					"where l.member = :m and l.book = :b and l.returned = false",
 					Long.class)
 					.setParameter("m", member)
 					.setParameter("b", book)
@@ -484,7 +485,7 @@ public class LibraryManager {
 				"from Loan l where l.returned = false and l.dueDate < :today",
 				Loan.class).setParameter("today", today).list();
 		
-		System.out.println("Overdue loans:");
+		System.out.println("Overdue loans: ");
 				if (overdueLoans.isEmpty()) {
 					System.out.println("No overdue loans.");
 				} else {
