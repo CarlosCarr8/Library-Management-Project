@@ -40,6 +40,7 @@ public class Main {
             System.out.println("13. View Active Loans");
             System.out.println("14. View Overdue Loans");
             System.out.println("15. View Loans by Member");
+            System.out.println("16. Mark book as 'Unavailable'");
 
             System.out.println("0. Exit");
             System.out.print("Choose an option: ");
@@ -115,6 +116,12 @@ public class Main {
                     System.out.print("Enter Member ID: ");
                     int mid2 = sc.nextInt();
                     manager.viewLoansByMember(mid2);
+                }
+                
+                case 16 -> {
+                	System.out.println("Enter BookID to mark unavailable: ");
+                	int id = sc.nextInt();
+                	manager.markBookUnavailable(id);
                 }
 
                 case 0 -> {
@@ -196,7 +203,8 @@ public class Main {
                 LocalDate.of(1943, 4, 6), 2);
 
         // MEMBERS
-        manager.addMember(1001, "john", "pass123", "John Smith", "john@example.com");
+        manager.addMember(52842, "Carlos", "pass123", "Carlos Carrillo", "52842@alunos.upt.pt");
+        manager.addMember(53139, "Gulfarida", "password123", "Gulfarida Zhanabergen", "53139@alunos.upt.pt");
 
         System.out.println("Sample data inserted successfully!");
     }
