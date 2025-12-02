@@ -333,7 +333,7 @@ public class LibraryManager {
 			tx.commit();
 			System.out.println("Book: '" + book.getTitle() +
 								"' loaned to " + member.getName() +
-								"until " + dueDate + ".");
+								" until " + dueDate + ".");
 		} catch (Exception e){
 			tx.rollback();
 			e.printStackTrace();
