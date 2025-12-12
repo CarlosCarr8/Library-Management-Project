@@ -1,7 +1,6 @@
 package com.library.entity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
-import com.library.entity.Genre;
 import java.util.List;
 import java.util.ArrayList;
 
