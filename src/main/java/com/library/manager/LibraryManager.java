@@ -152,10 +152,16 @@ public class LibraryManager {
 	
 	public void viewGenres() {
 		Session session = DatabaseManager.getSessionFactory().openSession();
-		var genres = session.createQuery("from Genre", Genre.class).list();
 		
-		for (Genre g : genres) {
-			System.out.println(g);
+		List<Genre> genres = session.createQuery("from Genre", Genre.class).list();
+		
+		System.out.println("\nAvailable Genres:");
+		if (genres.isEmpty()) {
+			System.out.println("No genres registered.");
+		} else {
+			for (Genre g : genres) {
+				System.out.println("ID: " + g.getId() + " | Type: " + g.getType());
+			}
 		}
 		session.close();
 	}

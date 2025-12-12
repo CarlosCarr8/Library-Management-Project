@@ -25,22 +25,23 @@ public class Main {
             System.out.println("\n====== LIBRARY MANAGEMENT SYSTEM ======");
             System.out.println("1. Initialize sample data (genres, books, members)");
             System.out.println("2. Add Genre");
-            System.out.println("3. Add Book");
-            System.out.println("4. Add Member");
-            System.out.println("5. View All Books");
+            System.out.println("3. View All Genres");
+            System.out.println("4. Add Book");
+            System.out.println("5. Add Member");
+            System.out.println("6. View All Books");
 
-            System.out.println("6. Search Books by Title");
-            System.out.println("7. Search Books by Author");
-            System.out.println("8. Search Books by Year");
-            System.out.println("9. Search Books by Genre ID");
-            System.out.println("10. Search Books by Genre Name");
+            System.out.println("7. Search Books by Title");
+            System.out.println("8. Search Books by Author");
+            System.out.println("9. Search Books by Year");
+            System.out.println("10. Search Books by Genre ID");
+            System.out.println("11. Search Books by Genre Name");
 
-            System.out.println("11. Borrow Book");
-            System.out.println("12. Return Book");
-            System.out.println("13. View Active Loans");
-            System.out.println("14. View Overdue Loans");
-            System.out.println("15. View Loans by Member");
-            System.out.println("16. Mark book as 'Unavailable'");
+            System.out.println("12. Borrow Book");
+            System.out.println("13. Return Book");
+            System.out.println("14. View Active Loans");
+            System.out.println("15. View Overdue Loans");
+            System.out.println("16. View Loans by Member");
+            System.out.println("17. Mark book as 'Unavailable'");
 
             System.out.println("0. Exit");
             System.out.print("Choose an option: ");
@@ -57,44 +58,46 @@ public class Main {
                     String g = sc.nextLine();
                     manager.addGenre(g);
                 }
+                
+                case 3 -> manager.viewGenres();
 
-                case 3 -> addBookMenu();
+                case 4 -> addBookMenu();
 
-                case 4 -> addMemberMenu();
+                case 5 -> addMemberMenu();
 
-                case 5 -> manager.viewBooks();
+                case 6 -> manager.viewBooks();
 
-                case 6 -> {
+                case 7 -> {
                     System.out.print("Enter title keyword: ");
                     String t = sc.nextLine();
                     manager.searchByTitle(t);
                 }
 
-                case 7 -> {
+                case 8 -> {
                     System.out.print("Enter author name: ");
                     String a = sc.nextLine();
                     manager.searchByAuthor(a);
                 }
 
-                case 8 -> {
+                case 9 -> {
                     System.out.print("Enter publication year: ");
                     int y = sc.nextInt();
                     manager.searchYear(y);
                 }
 
-                case 9 -> {
+                case 10 -> {
                     System.out.print("Enter Genre ID: ");
                     int gid = sc.nextInt();
                     manager.searchByGenre(gid);
                 }
 
-                case 10 -> {
+                case 11 -> {
                     System.out.print("Enter Genre name: ");
                     String gname = sc.nextLine();
                     manager.searchGenre(gname);
                 }
 
-                case 11 -> {
+                case 12 -> {
                     System.out.print("Enter Member ID: ");
                     int mid = sc.nextInt();
                     System.out.print("Enter Book ID: ");
@@ -102,23 +105,23 @@ public class Main {
                     manager.borrowBook(mid, bid);
                 }
 
-                case 12 -> {
+                case 13 -> {
                     System.out.print("Enter Loan ID: ");
                     int lid = sc.nextInt();
                     manager.returnBook(lid);
                 }
 
-                case 13 -> manager.viewBorrowedBooks();
+                case 14 -> manager.viewBorrowedBooks();
 
-                case 14 -> manager.viewOverdueBooks();
+                case 15 -> manager.viewOverdueBooks();
 
-                case 15 -> {
+                case 16 -> {
                     System.out.print("Enter Member ID: ");
                     int mid2 = sc.nextInt();
                     manager.viewLoansByMember(mid2);
                 }
                 
-                case 16 -> {
+                case 17 -> {
                 	System.out.println("Enter BookID to mark unavailable: ");
                 	int id = sc.nextInt();
                 	manager.markBookUnavailable(id);
